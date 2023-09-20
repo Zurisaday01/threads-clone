@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import Thread from '../models/thread.models';
 import User from '../models/user.models';
 import { connectToDB } from '../mongoose';
+import Community from '../models/community.models';
 
 interface Params {
 	text: string;
@@ -29,17 +30,34 @@ export async function createThread({
 		// Connect to mongo DB
 		connectToDB();
 
-		// create thread
-		const createdThread = await Thread.create({
-			text,
-			author,
-			community: null,
-		});
+		// return the community document with at least the _id field
+		const communityIdObject = await Community.findOne(
+			{ id: communityId },
+			{ _id: 1 }
+		);
 
-		// push the "created thread" to the user document (author)
-		await User.findByIdAndUpdate(author, {
-			$push: { threads: createdThread._id },
-		});
+		console.log('COMMUNITY ID', communityIdObject);
+
+		// create thread
+		// const createdThread = await Thread.create({
+		// 	text,
+		// 	author,
+		// 	community: communityDocument._id,
+		// });
+		// console.log('CREATED THREAD', createThread);
+
+		// // push the "created thread" to the user document (author)
+		// await User.findByIdAndUpdate(author, {
+		// 	$push: { threads: createdThread._id },
+		// });
+
+		// // if there creater of the threads belongs to a community, push the created thread to the community
+		// if (communityIdObject) {
+		// 	// Update Community model
+		// 	await Community.findByIdAndUpdate(communityIdObject, {
+		// 		$push: { threads: createdThread._id },
+		// 	});
+		// }
 
 		// immediate changes
 		revalidatePath(path);
@@ -62,6 +80,14 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 			.skip(skipAmount)
 			.limit(pageSize)
 			.populate({ path: 'author', model: User })
+			.populate({
+				path: 'author',
+				model: User,
+			})
+			.populate({
+				path: 'community',
+				model: Community,
+			})
 			.populate({
 				path: 'children',
 				populate: {
@@ -100,22 +126,27 @@ export async function fetchThreadById(id: string) {
 				path: 'author',
 				model: User,
 				select: '_id id name image',
-			})
+			}) // Populate the author field with _id and username
 			.populate({
-				path: 'children',
+				path: 'community',
+				model: Community,
+				select: '_id id name image',
+			}) // Populate the community field with _id and name
+			.populate({
+				path: 'children', // Populate the children field
 				populate: [
 					{
-						path: 'author',
+						path: 'author', // Populate the author field within children
 						model: User,
-						select: '_id id name parentId image',
+						select: '_id id name parentId image', // Select only _id and username fields of the author
 					},
 					{
-						path: 'children',
-						model: Thread,
+						path: 'children', // Populate the children field within children
+						model: Thread, // The model of the nested children (assuming it's the same "Thread" model)
 						populate: {
-							path: 'author',
+							path: 'author', // Populate the author field within nested children
 							model: User,
-							select: '_id id name parentId image',
+							select: '_id id name parentId image', // Select only _id and username fields of the author
 						},
 					},
 				],

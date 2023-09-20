@@ -9,7 +9,7 @@ import { connectToDB } from '../mongoose';
 export async function createCommunity(
 	id: string,
 	name: string,
-	username: string,
+	username: string | null,
 	image: string,
 	bio: string,
 	createdById: string // Change the parameter name to reflect it's an id
@@ -95,7 +95,7 @@ export async function fetchCommunityPosts(id: string) {
 
 		return communityPosts;
 	} catch (error) {
-		// Handle any errors    
+		// Handle any errors
 		console.error('Error fetching community posts:', error);
 		throw error;
 	}
