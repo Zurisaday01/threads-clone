@@ -34,37 +34,9 @@ export const GET = async () => {
 		});
 	}
 
-	// Get the body
-	const payload = await request.json();
-	const body = JSON.stringify(payload);
-
-	// Create a new SVIX instance with your secret.
 	const wh = new Webhook(WEBHOOK_SECRET);
 
 	let evt: WebhookEvent;
-
-	// Verify the payload with the headers
-	try {
-		evt = wh.verify(body, {
-			'svix-id': svix_id,
-			'svix-timestamp': svix_timestamp,
-			'svix-signature': svix_signature,
-		}) as WebhookEvent;
-	} catch (err) {
-		console.error('Error verifying webhook:', err);
-		return new Response('Error occured', {
-			status: 400,
-		});
-	}
-
-	// Get the ID and type
-	const { id } = evt.data;
-	const eventType = evt.type;
-
-	// Listen organization creation event
-
-	console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
-	console.log('Webhook body:', body);
 
 	return new Response('Running...', { status: 200 });
 };
