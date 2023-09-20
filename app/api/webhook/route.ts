@@ -63,144 +63,146 @@ export const POST = async (request: Request) => {
 
 	// Listen organization creation event
 
-	console.log(eventType);
-	if (eventType === 'organization.created') {
-		// Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/CreateOrganization
+	console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
+	console.log('Webhook body:', body);
 
-		const { id, name, slug, image_url, created_by } = evt?.data ?? {};
+	return new Response('', { status: 201 });
+	// if (eventType === 'organization.created') {
+	// 	// Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/CreateOrganization
 
-		try {
-			// @ts-ignore
-			await createCommunity(
-				// @ts-ignore
-				id,
-				name,
-				slug,
-				image_url,
-				'org bio',
-				created_by
-			);
+	// 	const { id, name, slug, image_url, created_by } = evt?.data ?? {};
 
-			return NextResponse.json({ message: 'User created' }, { status: 201 });
-		} catch (err) {
-			console.log(err);
-			return NextResponse.json(
-				{ message: 'Internal Server Error' },
-				{ status: 500 }
-			);
-		}
-	}
+	// 	try {
+	// 		// @ts-ignore
+	// 		await createCommunity(
+	// 			// @ts-ignore
+	// 			id,
+	// 			name,
+	// 			slug,
+	// 			image_url,
+	// 			'org bio',
+	// 			created_by
+	// 		);
 
-	if (eventType === 'organizationInvitation.created') {
-		try {
-			// Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Invitations#operation/CreateOrganizationInvitation
-			console.log('Invitation created', evt?.data);
+	// 		return NextResponse.json({ message: 'User created' }, { status: 201 });
+	// 	} catch (err) {
+	// 		console.log('Organization.created failed, ', err);
+	// 		return NextResponse.json(
+	// 			{ message: `Internal Server Error ${err}]` },
+	// 			{ status: 500 }
+	// 		);
+	// 	}
+	// }
 
-			return NextResponse.json(
-				{ message: 'Invitation created' },
-				{ status: 201 }
-			);
-		} catch (err) {
-			console.log(err);
+	// if (eventType === 'organizationInvitation.created') {
+	// 	try {
+	// 		console.log('Invitation created', evt?.data);
 
-			return NextResponse.json(
-				{ message: 'Internal Server Error' },
-				{ status: 500 }
-			);
-		}
-	}
+	// 		return NextResponse.json(
+	// 			{ message: 'Invitation created' },
+	// 			{ status: 201 }
+	// 		);
+	// 	} catch (err) {
+	// 		console.log(err);
 
-	// Listen organization membership (member invite & accepted) creation
-	if (eventType === 'organizationMembership.created') {
-		try {
-			// Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/CreateOrganizationMembership
-			// Show what evnt?.data sends from above resource
-			const { organization, public_user_data } = evt?.data;
-			console.log('created', evt?.data);
+	// 		return NextResponse.json(
+	// 			{ message: 'Internal Server Error' },
+	// 			{ status: 500 }
+	// 		);
+	// 	}
+	// }
 
-			// @ts-ignore
-			await addMemberToCommunity(organization.id, public_user_data.user_id);
+	// // Listen organization membership (member invite & accepted) creation
+	// if (eventType === 'organizationMembership.created') {
+	// 	try {
+	// 		// Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/CreateOrganizationMembership
+	// 		// Show what evnt?.data sends from above resource
+	// 		const { organization, public_user_data } = evt?.data;
+	// 		console.log('created', evt?.data);
 
-			return NextResponse.json(
-				{ message: 'Invitation accepted' },
-				{ status: 201 }
-			);
-		} catch (err) {
-			console.log(err);
+	// 		// @ts-ignore
+	// 		await addMemberToCommunity(organization.id, public_user_data.user_id);
 
-			return NextResponse.json(
-				{ message: 'Internal Server Error' },
-				{ status: 500 }
-			);
-		}
-	}
+	// 		return NextResponse.json(
+	// 			{ message: 'Invitation accepted' },
+	// 			{ status: 201 }
+	// 		);
+	// 	} catch (err) {
+	// 		console.log(err);
 
-	// Listen member deletion event
-	if (eventType === 'organizationMembership.deleted') {
-		try {
-			// Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/DeleteOrganizationMembership
-			// Show what evnt?.data sends from above resource
-			const { organization, public_user_data } = evt?.data;
-			console.log('removed', evt?.data);
+	// 		return NextResponse.json(
+	// 			{ message: 'Internal Server Error' },
+	// 			{ status: 500 }
+	// 		);
+	// 	}
+	// }
 
-			// @ts-ignore
-			await removeUserFromCommunity(public_user_data.user_id, organization.id);
+	// // Listen member deletion event
+	// if (eventType === 'organizationMembership.deleted') {
+	// 	try {
+	// 		// Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/DeleteOrganizationMembership
+	// 		// Show what evnt?.data sends from above resource
+	// 		const { organization, public_user_data } = evt?.data;
+	// 		console.log('removed', evt?.data);
 
-			return NextResponse.json({ message: 'Member removed' }, { status: 201 });
-		} catch (err) {
-			console.log(err);
+	// 		// @ts-ignore
+	// 		await removeUserFromCommunity(public_user_data.user_id, organization.id);
 
-			return NextResponse.json(
-				{ message: 'Internal Server Error' },
-				{ status: 500 }
-			);
-		}
-	}
+	// 		return NextResponse.json({ message: 'Member removed' }, { status: 201 });
+	// 	} catch (err) {
+	// 		console.log(err);
 
-	// Listen organization updation event
-	if (eventType === 'organization.updated') {
-		try {
-			// Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/UpdateOrganization
-			// Show what evnt?.data sends from above resource
-			const { id, logo_url, name, slug } = evt?.data;
-			console.log('updated', evt?.data);
+	// 		return NextResponse.json(
+	// 			{ message: 'Internal Server Error' },
+	// 			{ status: 500 }
+	// 		);
+	// 	}
+	// }
 
-			// @ts-ignore
-			await updateCommunityInfo(id, name, slug, logo_url);
+	// // Listen organization updation event
+	// if (eventType === 'organization.updated') {
+	// 	try {
+	// 		// Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/UpdateOrganization
+	// 		// Show what evnt?.data sends from above resource
+	// 		const { id, logo_url, name, slug } = evt?.data;
+	// 		console.log('updated', evt?.data);
 
-			return NextResponse.json({ message: 'Member removed' }, { status: 201 });
-		} catch (err) {
-			console.log(err);
+	// 		// @ts-ignore
+	// 		await updateCommunityInfo(id, name, slug, logo_url);
 
-			return NextResponse.json(
-				{ message: 'Internal Server Error' },
-				{ status: 500 }
-			);
-		}
-	}
+	// 		return NextResponse.json({ message: 'Member removed' }, { status: 201 });
+	// 	} catch (err) {
+	// 		console.log(err);
 
-	// Listen organization deletion event
-	if (eventType === 'organization.deleted') {
-		try {
-			// Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/DeleteOrganization
-			// Show what evnt?.data sends from above resource
-			const { id } = evt?.data;
-			console.log('deleted', evt?.data);
+	// 		return NextResponse.json(
+	// 			{ message: 'Internal Server Error' },
+	// 			{ status: 500 }
+	// 		);
+	// 	}
+	// }
 
-			// @ts-ignore
-			await deleteCommunity(id);
+	// // Listen organization deletion event
+	// if (eventType === 'organization.deleted') {
+	// 	try {
+	// 		// Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/DeleteOrganization
+	// 		// Show what evnt?.data sends from above resource
+	// 		const { id } = evt?.data;
+	// 		console.log('deleted', evt?.data);
 
-			return NextResponse.json(
-				{ message: 'Organization deleted' },
-				{ status: 201 }
-			);
-		} catch (err) {
-			console.log(err);
+	// 		// @ts-ignore
+	// 		await deleteCommunity(id);
 
-			return NextResponse.json(
-				{ message: 'Internal Server Error' },
-				{ status: 500 }
-			);
-		}
-	}
+	// 		return NextResponse.json(
+	// 			{ message: 'Organization deleted' },
+	// 			{ status: 201 }
+	// 		);
+	// 	} catch (err) {
+	// 		console.log(err);
+
+	// 		return NextResponse.json(
+	// 			{ message: 'Internal Server Error' },
+	// 			{ status: 500 }
+	// 		);
+	// 	}
+	// }
 };
